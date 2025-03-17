@@ -19,6 +19,8 @@ import { Textarea } from "./ui/textarea";
 
 const queryClient = useQueryClient();
 
+const open = ref(false);
+
 const name = ref("");
 const description = ref("");
 const price = ref("");
@@ -42,9 +44,13 @@ const onSubmit = async (e: Event) => {
       quantity: quantity.value,
     });
 
-    console.log(res);
     toast.success("Produto criado com sucesso!");
     queryClient.invalidateQueries({ queryKey: ["products"] });
+    name.value = "";
+    description.value = "";
+    price.value = "";
+    quantity.value = 0;
+    open.value = false;
   } catch (error) {
     toast.error("Erro ao criar o produto.");
     console.error(error);
@@ -53,7 +59,7 @@ const onSubmit = async (e: Event) => {
 </script>
 
 <template>
-  <Sheet>
+  <Sheet v-model:open="open">
     <SheetTrigger as-child>
       <Button size="sm">Add Product +</Button>
     </SheetTrigger>

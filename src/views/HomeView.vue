@@ -18,9 +18,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { api } from "@/lib/api";
-import { useQuery } from "@tanstack/vue-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
+import { PencilIcon, Trash2Icon } from "lucide-vue-next";
 import { ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { toast } from "vue-sonner";
+
+const queryClient = useQueryClient();
 
 interface Product {
   ID: number;
@@ -62,6 +66,16 @@ const getProducts = async ({ page, name, limit }: GetProductProps) => {
   }
 };
 
+const deleteProduct = async (id: number) => {
+  try {
+    const res = await api.delete(`/products/${id}`);
+
+    return res.data;
+  } catch (error) {
+    console.log("ocorreu um error: ", error);
+  }
+};
+
 const route = useRoute();
 const router = useRouter();
 
@@ -74,9 +88,17 @@ watch(
   }
 );
 
-const { data, isLoading, isError, error } = useQuery({
+const { data, isLoading, isError, error, refetch } = useQuery({
   queryKey: ["products", currentPage],
   queryFn: () => getProducts({ page: currentPage.value, limit: 10 }),
+});
+
+const { mutate: mutateDelete } = useMutation({
+  mutationFn: (props: { id: number }) => deleteProduct(props.id),
+  onSuccess: () => {
+    refetch();
+    toast.success("Produto deletado com sucesso!");
+  },
 });
 
 const changePage = (page: number) => {
@@ -101,7 +123,7 @@ const changePage = (page: number) => {
         {{ error?.message || "Tente novamente mais tarde." }}
       </div>
 
-      <Table v-if="data?.products">
+      <Table v-if="data?.products.length">
         <TableHeader>
           <TableRow>
             <TableHead>ID</TableHead>
@@ -109,6 +131,7 @@ const changePage = (page: number) => {
             <TableHead>Description</TableHead>
             <TableHead>Price</TableHead>
             <TableHead>Quantity</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -129,6 +152,19 @@ const changePage = (page: number) => {
             <TableCell>
               {{ product.quantity }}
             </TableCell>
+            <TableCell>
+              <Button
+                variant="ghost"
+                size="icon"
+                @click="mutateDelete({ id: product.ID })"
+                class="text-red-500 hover:text-red-800"
+              >
+                <Trash2Icon class="" />
+              </Button>
+              <Button variant="ghost" size="icon" class="text-yellow-500">
+                <PencilIcon />
+              </Button>
+            </TableCell>
           </TableRow>
         </TableBody>
       </Table>
@@ -136,7 +172,7 @@ const changePage = (page: number) => {
       <div v-else class="text-center py-4">Nenhum produto encontrado.</div>
     </div>
 
-    <div class="flex items-center justify-end">
+    <div v-if="data?.products.length" class="flex items-center justify-end">
       <Pagination
         v-slot="{ page }"
         :items-per-page="10"

@@ -57,7 +57,7 @@ const onSubmit = form.handleSubmit(async (values) => {
 <template>
   <div class="flex flex-col gap-6">
     <Card class="relative">
-      <CardHeader class="text-center">
+      <CardHeader class="text-center relative">
         <div class="absolute inset-0 overflow-hidden rounded-xl">
           <div class="absolute inset-0 opacity-10">
             <div

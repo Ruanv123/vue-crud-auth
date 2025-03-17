@@ -4,7 +4,7 @@ import { Toaster } from "vue-sonner";
 </script>
 
 <template>
-  <Toaster rich-colors />
+  <Toaster rich-colors position="bottom-left" close-button />
   <RouterView />
 </template>
 
