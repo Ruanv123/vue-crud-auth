@@ -43,7 +43,6 @@ const form = useForm({
 });
 
 const onSubmit = form.handleSubmit(async (values) => {
-  console.log("form submited", values);
   api.post("/login", values).then((res) => {
     console.log(res.data);
     if (res.data) {
