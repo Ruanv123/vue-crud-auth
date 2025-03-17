@@ -134,8 +134,6 @@ const changePage = (page: number) => {
       </Table>
 
       <div v-else class="text-center py-4">Nenhum produto encontrado.</div>
-
-      <!--  -->
     </div>
 
     <div class="flex items-center justify-end">
@@ -145,10 +143,9 @@ const changePage = (page: number) => {
         :total="data?.total || 0"
         :sibling-count="1"
         show-edges
-        :default-page="currentPage.value"
+        :default-page="currentPage"
       >
         <PaginationList v-slot="{ items }" class="flex items-center gap-1">
-          <!-- <PaginationFirst /> -->
           <PaginationPrev />
 
           <template v-for="(item, index) in items" :key="index">
@@ -160,9 +157,7 @@ const changePage = (page: number) => {
             >
               <Button
                 class="w-9 h-9 p-0"
-                :variant="
-                  item.value === currentPage.value ? 'default' : 'outline'
-                "
+                :variant="item.value === currentPage ? 'default' : 'outline'"
                 @click="changePage(item.value)"
               >
                 {{ item.value }}
@@ -172,7 +167,6 @@ const changePage = (page: number) => {
           </template>
 
           <PaginationNext />
-          <!-- <PaginationLast /> -->
         </PaginationList>
       </Pagination>
     </div>
