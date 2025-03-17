@@ -1,5 +1,14 @@
 <script setup lang="ts">
 import CreateProductModal from "@/components/CreateProductModal.vue";
+import { Button } from "@/components/ui/button";
+import {
+  Pagination,
+  PaginationEllipsis,
+  PaginationList,
+  PaginationListItem,
+  PaginationNext,
+  PaginationPrev,
+} from "@/components/ui/pagination";
 import {
   Table,
   TableBody,
@@ -10,6 +19,8 @@ import {
 } from "@/components/ui/table";
 import { api } from "@/lib/api";
 import { useQuery } from "@tanstack/vue-query";
+import { ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 interface Product {
   ID: number;
@@ -51,10 +62,26 @@ const getProducts = async ({ page, name, limit }: GetProductProps) => {
   }
 };
 
+const route = useRoute();
+const router = useRouter();
+
+const currentPage = ref(parseInt(route.query.page as string) || 1);
+
+watch(
+  () => route.query.page,
+  (newPage) => {
+    currentPage.value = parseInt(newPage as string) || 1;
+  }
+);
+
 const { data, isLoading, isError, error } = useQuery({
-  queryKey: ["products"],
-  queryFn: () => getProducts({ page: 1, limit: 10 }),
+  queryKey: ["products", currentPage],
+  queryFn: () => getProducts({ page: currentPage.value, limit: 10 }),
 });
+
+const changePage = (page: number) => {
+  router.push({ query: { ...route.query, page } });
+};
 </script>
 
 <template>
@@ -107,8 +134,47 @@ const { data, isLoading, isError, error } = useQuery({
       </Table>
 
       <div v-else class="text-center py-4">Nenhum produto encontrado.</div>
+
+      <!--  -->
+    </div>
+
+    <div class="flex items-center justify-end">
+      <Pagination
+        v-slot="{ page }"
+        :items-per-page="10"
+        :total="data?.total || 0"
+        :sibling-count="1"
+        show-edges
+        :default-page="currentPage.value"
+      >
+        <PaginationList v-slot="{ items }" class="flex items-center gap-1">
+          <!-- <PaginationFirst /> -->
+          <PaginationPrev />
+
+          <template v-for="(item, index) in items" :key="index">
+            <PaginationListItem
+              v-if="item.type === 'page'"
+              :key="index"
+              :value="item.value"
+              as-child
+            >
+              <Button
+                class="w-9 h-9 p-0"
+                :variant="
+                  item.value === currentPage.value ? 'default' : 'outline'
+                "
+                @click="changePage(item.value)"
+              >
+                {{ item.value }}
+              </Button>
+            </PaginationListItem>
+            <PaginationEllipsis v-else :key="item.type" :index="index" />
+          </template>
+
+          <PaginationNext />
+          <!-- <PaginationLast /> -->
+        </PaginationList>
+      </Pagination>
     </div>
   </div>
 </template>
-
-<style scoped></style>
